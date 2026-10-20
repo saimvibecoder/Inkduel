@@ -72,6 +72,20 @@ body{-webkit-touch-callout:none}
 @media (max-width:620px),(max-height:500px){#pbar{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;padding-block:4px;scrollbar-width:none}#pbar::-webkit-scrollbar{display:none}.pb,#pbCombo,.pbme{flex:none}.pb{padding:6px 9px;font-size:11px}}
 #fsBtn[hidden]{display:none}
 body.gpad #pad{display:none!important}
+body.touch.padcustom #pad{position:fixed;inset:0;display:block;padding:0;pointer-events:none;z-index:6}
+body.touch.padcustom:not(.playing):not(.padedit) #pad{display:none}
+body.padcustom .acts{display:contents}
+body.padcustom #pad .dpad,body.padcustom #pad .acts button{position:fixed;transform:translate(-50%,-50%) scale(var(--s,1));pointer-events:auto;opacity:var(--po,.78)}
+body.padedit #pad{z-index:31}
+body.padedit #pad .dpad,body.padedit #pad .acts button{opacity:1;cursor:grab;touch-action:none}
+body.padedit #pad .psel{outline:2px dashed var(--accent);outline-offset:6px}
+body.padedit .overlay{visibility:hidden!important}
+#padEdit{position:fixed;inset:0;z-index:30;pointer-events:none;display:grid;align-content:start;justify-items:center;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 0}
+#padEdit .bar{pointer-events:auto;box-shadow:0 8px 30px rgba(0,0,0,.5);display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;max-width:680px;padding:10px 12px;background:var(--panel);border:1px solid var(--line)}
+#padEdit .bar p{flex-basis:100%;margin:0 0 2px;text-align:center;font-size:12px;color:var(--dim)}
+#padEdit .bar span{font:600 11px var(--ui);letter-spacing:.06em;color:var(--dim);text-transform:uppercase}
+#padEdit button{padding:8px 12px;font:600 12px var(--ui)}
+#padEdit .grp{display:flex;gap:4px;align-items:center}
 body.gpad #rotHint{display:none!important}
 body.gpad .overlay button:focus,body.gpad #pbar button:focus{outline:3px solid var(--ink);outline-offset:3px}
 body.gpad .card:focus{outline:3px solid var(--c);outline-offset:2px}
@@ -200,6 +214,14 @@ kbd{font:600 11px var(--ui);padding:1px 6px;border:1px solid var(--line);border-
 </head>
 <body>
 <div id="toast" role="status" aria-live="polite"></div>
+<div id="padEdit" hidden>
+  <div class="bar">
+    <p id="padEditTip">Drag the buttons where you want them. Tap one to select it, then change its size.</p>
+    <div class="grp"><span>Size</span><button class="ghost" id="peSm" aria-label="Smaller">−</button><button class="ghost" id="peLg" aria-label="Bigger">+</button></div>
+    <div class="grp"><span>Opacity</span><button class="ghost" id="peOd" aria-label="More see-through">−</button><button class="ghost" id="peOu" aria-label="More solid">+</button></div>
+    <button class="ghost danger" id="peReset">Reset</button><button class="cta" id="peDone">Done</button>
+  </div>
+</div>
 <div id="app">
   <div id="stage">
     <div id="screen">
@@ -337,6 +359,7 @@ kbd{font:600 11px var(--ui);padding:1px 6px;border:1px solid var(--line);border-
       <h2>Settings</h2>
       <div class="setgrid">
         <div class="opt"><span>Fighters</span><div class="seg" id="setS3d"><button data-v="1">3D</button><button data-v="0">2D</button></div></div>
+        <div class="opt" id="padOpt"><span>Touch controls</span><div class="seg"><button id="padEditBtn" type="button">Move &amp; resize</button></div></div>
         <div class="opt"><span>Music</span><div class="seg" id="setMusic"><button data-v="1">On</button><button data-v="0">Off</button></div></div>
         <div class="opt"><span>Announcer</span><div class="seg" id="setVoice"><button data-v="1">On</button><button data-v="0">Off</button></div></div>
         <div class="opt"><span>Sound effects</span><div class="seg" id="setSfx"><button data-v="1">On</button><button data-v="0">Off</button></div></div>
@@ -1379,7 +1402,7 @@ function dummyThink(f,o){
 /* ---------- input ---------- */
 const keys={},touch={},tapped={};
 const KM={ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',ArrowUp:'up',KeyW:'up',Space:'up',ArrowDown:'down',KeyS:'down',KeyJ:'punch',KeyZ:'punch',KeyK:'kick',KeyX:'kick',KeyL:'block',KeyC:'block',ShiftLeft:'block',KeyI:'special',KeyV:'special'};
-addEventListener('keydown',e=>{if(e.code==='Escape'&&!setEl.hidden){closeSettings();return;}if(e.code==='Escape'&&!gearEl.hidden){closeGear();return;}if(e.code==='Escape'&&!ladEl.hidden){document.getElementById('ladBack').click();return;}if(e.code==='Escape'&&!upEl.hidden){closeUpgrade();return;}const tg=e.target;if(tg&&(tg.tagName==='INPUT'||tg.tagName==='TEXTAREA'))return;initAudio();if(e.code==='Escape'||e.code==='KeyP'){if(G.phase!=='menu'&&G.phase!=='results'){togglePause();e.preventDefault();}return;}const k=KM[e.code];if(k&&G.phase!=='menu'&&G.phase!=='results'){if(!keys[k])tapped[k]=1;keys[k]=1;e.preventDefault();}});
+addEventListener('keydown',e=>{if(e.code==='Escape'&&padEditOn){closePadEdit(true);return;}if(e.code==='Escape'&&!setEl.hidden){closeSettings();return;}if(e.code==='Escape'&&!gearEl.hidden){closeGear();return;}if(e.code==='Escape'&&!ladEl.hidden){document.getElementById('ladBack').click();return;}if(e.code==='Escape'&&!upEl.hidden){closeUpgrade();return;}const tg=e.target;if(tg&&(tg.tagName==='INPUT'||tg.tagName==='TEXTAREA'))return;initAudio();if(e.code==='Escape'||e.code==='KeyP'){if(G.phase!=='menu'&&G.phase!=='results'){togglePause();e.preventDefault();}return;}const k=KM[e.code];if(k&&G.phase!=='menu'&&G.phase!=='results'){if(!keys[k])tapped[k]=1;keys[k]=1;e.preventDefault();}});
 addEventListener('keyup',e=>{const k=KM[e.code];if(k)keys[k]=0;});
 addEventListener('blur',()=>{for(const k in keys)keys[k]=0;for(const k in touch)touch[k]=0;if(['fight','intro','finish'].includes(G.phase)&&!G.paused)togglePause();});
 const readInput=()=>{const o={};for(const k in EMPTY)o[k]=!!(keys[k]||touch[k]||gp.state[k]||tapped[k]);return o;};
@@ -1390,17 +1413,61 @@ addEventListener('touchstart',()=>setTouch(true),{passive:true});
 addEventListener('keydown',e=>{if(KM[e.code]&&!matchMedia('(pointer:coarse)').matches)setTouch(false);});
 document.querySelectorAll('.acts button').forEach(b=>{
  const k=b.dataset.k;
- b.addEventListener('pointerdown',e=>{initAudio();e.preventDefault();touch[k]=1;tapped[k]=1;b.classList.add('on');try{b.setPointerCapture(e.pointerId);}catch(_){}});
+ b.addEventListener('pointerdown',e=>{if(padEditOn)return;initAudio();e.preventDefault();touch[k]=1;tapped[k]=1;b.classList.add('on');try{b.setPointerCapture(e.pointerId);}catch(_){}});
  const up=()=>{touch[k]=0;b.classList.remove('on');};
  b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('lostpointercapture',up);
  b.addEventListener('contextmenu',e=>e.preventDefault());
 });
+/* ---------- custom touch layout: drag, resize and fade the on-screen buttons ---------- */
+const PADKEYS=['dpad','punch','kick','block','special'];
+const padEls=()=>({dpad:document.getElementById('dpad'),...Object.fromEntries([...document.querySelectorAll('.acts button')].map(b=>[b.dataset.k,b]))});
+const padOri=()=>innerHeight>innerWidth?'p':'l';
+function loadPad(o){try{const v=JSON.parse(store.get('pad_'+o,'null'));if(v&&v.items&&PADKEYS.every(k=>v.items[k]&&isFinite(v.items[k].x)&&isFinite(v.items[k].y)))return v;}catch(e){}return null;}
+let PADL=null,padSel='dpad',padEditOn=false,padReturn=null;
+function applyPad(){
+ if(!padEditOn)PADL=loadPad(padOri());
+ const on=!!PADL,els=padEls();document.body.classList.toggle('padcustom',on);
+ for(const k of PADKEYS){const el=els[k];if(!el)continue;
+  if(on){const it=PADL.items[k];el.style.left=(Math.max(.02,Math.min(.98,it.x))*innerWidth)+'px';el.style.top=(Math.max(.02,Math.min(.98,it.y))*innerHeight)+'px';el.style.setProperty('--s',it.s||1);el.style.setProperty('--po',PADL.op??.78);}
+  else{el.style.left=el.style.top='';el.style.removeProperty('--s');el.style.removeProperty('--po');}
+  el.classList.toggle('psel',padEditOn&&k===padSel);}
+}
+function capturePad(){const els=padEls(),items={};for(const k of PADKEYS){const r=els[k].getBoundingClientRect();items[k]={x:(r.left+r.width/2)/innerWidth,y:(r.top+r.height/2)/innerHeight,s:1};}return{items,op:.78};}
+function openPadEdit(){
+ if(['fight','intro','finish'].includes(G.phase)&&!G.paused)togglePause();
+ padReturn=!setEl.hidden?'settings':null;if(padReturn)setEl.hidden=true;
+ document.body.classList.add('touch');
+ const cur=loadPad(padOri());
+ if(!cur){document.body.classList.remove('padcustom');resize();}
+ PADL=cur||capturePad();padEditOn=true;document.body.classList.add('padedit');document.getElementById('padEdit').hidden=false;applyPad();
+}
+function closePadEdit(save){
+ if(save&&PADL)store.set('pad_'+padOri(),JSON.stringify(PADL));
+ padEditOn=false;document.body.classList.remove('padedit');document.getElementById('padEdit').hidden=true;
+ for(const k in touch)touch[k]=0;document.querySelectorAll('.acts button.on,.arr.on').forEach(e=>e.classList.remove('on'));
+ applyPad();resize();if(padReturn==='settings')openSettings();padReturn=null;
+}
+(()=>{const els=padEls();let drag=null;
+ for(const k of PADKEYS){const el=els[k];if(!el)continue;
+  el.addEventListener('pointerdown',e=>{if(!padEditOn)return;e.preventDefault();e.stopImmediatePropagation();padSel=k;const r=el.getBoundingClientRect();drag={k,id:e.pointerId,dx:e.clientX-(r.left+r.width/2),dy:e.clientY-(r.top+r.height/2)};try{el.setPointerCapture(e.pointerId);}catch(_){}applyPad();},true);
+  el.addEventListener('pointermove',e=>{if(!padEditOn||!drag||drag.id!==e.pointerId)return;e.preventDefault();e.stopImmediatePropagation();const it=PADL.items[drag.k];it.x=Math.max(.03,Math.min(.97,(e.clientX-drag.dx)/innerWidth));it.y=Math.max(.06,Math.min(.97,(e.clientY-drag.dy)/innerHeight));applyPad();},true);
+  const end=e=>{if(!padEditOn)return;e.stopImmediatePropagation();drag=null;};
+  ['pointerup','pointercancel'].forEach(ev=>el.addEventListener(ev,end,true));
+ }
+ const sz=d=>{if(!PADL)return;const it=PADL.items[padSel];it.s=Math.round(Math.max(.6,Math.min(1.8,(it.s||1)+d))*100)/100;applyPad();};
+ const op=d=>{if(!PADL)return;PADL.op=Math.round(Math.max(.25,Math.min(1,(PADL.op??.78)+d))*100)/100;applyPad();};
+ document.getElementById('peSm').onclick=()=>sz(-.1);document.getElementById('peLg').onclick=()=>sz(.1);
+ document.getElementById('peOd').onclick=()=>op(-.1);document.getElementById('peOu').onclick=()=>op(.1);
+ document.getElementById('peDone').onclick=()=>closePadEdit(true);
+ document.getElementById('peReset').onclick=()=>{store.set('pad_'+padOri(),'null');PADL=null;closePadEdit(false);toast('Default button layout restored');};
+ let lastOri=padOri();addEventListener('resize',()=>{const o=padOri();if(padEditOn&&o!==lastOri){closePadEdit(true);}lastOri=o;applyPad();});
+})();
 const dp=document.getElementById('dpad'),arrs={};dp.querySelectorAll('.arr').forEach(a=>arrs[a.dataset.d]=a);
 let dpId=null;
 function dpSet(e){const r=dp.getBoundingClientRect(),x=e.clientX-r.left-r.width/2,y=e.clientY-r.top-r.height/2;const s={left:x<-16,right:x>16,up:y<-22,down:y>22};for(const k in s){if(s[k]&&!touch[k])tapped[k]=1;touch[k]=s[k]?1:0;arrs[k].classList.toggle('on',s[k]);}}
 function dpClear(){dpId=null;for(const k in arrs){touch[k]=0;arrs[k].classList.remove('on');}}
-dp.addEventListener('pointerdown',e=>{initAudio();e.preventDefault();dpId=e.pointerId;try{dp.setPointerCapture(e.pointerId);}catch(_){}dpSet(e);});
-dp.addEventListener('pointermove',e=>{if(e.pointerId===dpId)dpSet(e);});
+dp.addEventListener('pointerdown',e=>{if(padEditOn)return;initAudio();e.preventDefault();dpId=e.pointerId;try{dp.setPointerCapture(e.pointerId);}catch(_){}dpSet(e);});
+dp.addEventListener('pointermove',e=>{if(!padEditOn&&e.pointerId===dpId)dpSet(e);});
 ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>dp.addEventListener(ev,e=>{if(e.pointerId===dpId)dpClear();}));
 
 /* ---------- controller (Gamepad API, standard mapping) ---------- */
@@ -1539,7 +1606,7 @@ function mStep(tr,n,t){
 const STAGES=[
  {key:'dojo',name:'Moon Dojo',wall:'shoji',breakable:true,hazard:null,music:0},
  {key:'roof',name:'Neon Rooftop',wall:'rail',breakable:false,hazard:'lightning',music:1},
- {key:'factory',name:'Robot Factory',wall:'steel',breakable:false,hazard:'press',conveyor:true,music:2},
+ {key:'factory',name:'Robot Factory',wall:'steel',breakable:false,hazard:'press',conveyor:false,music:2},
  {key:'desert',name:'Desert Sunset',wall:'ruin',breakable:true,hazard:'gust',music:3},
 ];
 const STAGE=()=>STAGES[G.stage||0];
@@ -1933,9 +2000,8 @@ function drawWalls(c){
   c.restore();}
 }
 function drawConveyor(c){
- G.beltOff=((G.beltOff||0)+(G.phase==='fight'?G.belt*.6:0)+24)%24;
  c.fillStyle='#22252c';c.fillRect(0,GROUND,W,18);c.strokeStyle='rgba(255,255,255,.09)';c.lineWidth=3;
- for(let x=-24+G.beltOff;x<W+24;x+=24){c.beginPath();c.moveTo(x,GROUND+3);c.lineTo(x+8,GROUND+15);c.stroke();}
+ for(let x=0;x<W+24;x+=24){c.beginPath();c.moveTo(x,GROUND+3);c.lineTo(x+8,GROUND+15);c.stroke();}
  c.fillStyle='#0e0f13';c.fillRect(0,GROUND+18,W,4);
 }
 function drawPress(c,h){
@@ -2458,6 +2524,7 @@ godBtn.onclick=()=>{
 };
 document.getElementById('setBtn').onclick=openSettings;
 document.getElementById('pauseSetBtn').onclick=openSettings;
+document.getElementById('padEditBtn').onclick=openPadEdit;try{applyPad();}catch(e){}
 document.getElementById('setDone').onclick=closeSettings;
 
 /* ---------- upgrades ---------- */
