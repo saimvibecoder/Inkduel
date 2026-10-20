@@ -1,12 +1,12 @@
 # Ink Duel
 
-An armored robot fighting game: 20 original fighters, each with a unique special and finisher,
+A hand-drawn fighting game: 20 original fighters, each with a unique special and finisher,
 four CPU difficulties (Easy, Normal, Hard, Nightmare) and a practice mode.
 It is an installable web app (PWA): it gets its own icon, opens full screen and plays offline after the first visit.
 
 ## Features
-- Arcade mode: pick a fighter and a difficulty, then beat 8 fights in a row (7 robots, then your own Shadow as the final boss). The difficulty stays the same for the whole run. Runs are saved, lose and you can continue. Clearing earns a bonus and a badge per difficulty.
-- 20 armored robot fighters, each with its own special and finisher
+- Arcade mode: pick a fighter and a difficulty, then beat 8 fights in a row (7 fighters, then your own Shadow as the final boss). The difficulty stays the same for the whole run. Runs are saved, lose and you can continue. Clearing earns a bonus and a badge per difficulty.
+- 20 painted fighters, each with its own special and finisher
 - 4 stages with their own music and hazards: Moon Dojo (breakable walls), Neon Rooftop (lightning, shock railings), Robot Factory (hydraulic press, conveyor floor), Desert Sunset (sandstorm gusts, breakable ruins)
 - Parry (tap Block just before a hit), throws (Forward + Punch up close), air combos (Uppercut, then Jump and attack), wall bounces and ring-outs
 - XP and upgrades: earn XP in Versus, spend it on Attack, Defence, Speed and Energy for each fighter

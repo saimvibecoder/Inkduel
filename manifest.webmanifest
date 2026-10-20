@@ -1,7 +1,7 @@
 {
   "name": "Ink Duel",
   "short_name": "Ink Duel",
-  "description": "Armored robot fighting game with 20 fighters, unique specials and finishers.",
+  "description": "Hand-drawn fighting game with 20 fighters, unique specials and finishers.",
   "id": "./",
   "start_url": "./",
   "scope": "./",
