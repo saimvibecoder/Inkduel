@@ -358,7 +358,7 @@ kbd{font:600 11px var(--ui);padding:1px 6px;border:1px solid var(--line);border-
       <p class="eyebrow">Ink Duel</p>
       <h2>Settings</h2>
       <div class="setgrid">
-        <div class="opt"><span>Fighters</span><div class="seg" id="setS3d"><button data-v="1">3D</button><button data-v="0">2D</button></div></div>
+        <div class="opt"><span>Fighters</span><div class="seg" id="setS3d"><button data-v="0">2D</button><button data-v="1">3D</button></div></div>
         <div class="opt" id="padOpt"><span>Touch controls</span><div class="seg"><button id="padEditBtn" type="button">Move &amp; resize</button></div></div>
         <div class="opt"><span>Music</span><div class="seg" id="setMusic"><button data-v="1">On</button><button data-v="0">Off</button></div></div>
         <div class="opt"><span>Announcer</span><div class="seg" id="setVoice"><button data-v="1">On</button><button data-v="0">Off</button></div></div>
@@ -1566,7 +1566,7 @@ function awardXP(){
  if(!PROG.god){PROG.xp+=xp;saveProg();}
  return{xp,parts};
 }
-const SET={s3d:store.get('s3d','1')!=='0',music:store.get('music','1')!=='0',voice:store.get('voice','1')!=='0',sfx:store.get('sfx','1')!=='0'};
+const SET={s3d:store.get('look','2d')==='3d',music:store.get('music','1')!=='0',voice:store.get('voice','1')!=='0',sfx:store.get('sfx','1')!=='0'};
 const NUMW=['zero','one','two','three','four','five','six','seven','eight','nine'];
 
 /* ---------- announcer (speech synthesis, robot-pitched) ---------- */
@@ -2042,7 +2042,7 @@ function drawBG(c){
 function drawShadow(c,f){if(f.hidden)return;const k=Math.max(.3,1-f.y/180);c.fillStyle='rgba(0,0,0,.45)';c.beginPath();c.ellipse(f.x,GROUND+3,28*k*f.tf.sx,5*k,0,0,7);c.fill();}
 /* ---------- 3D fighters (three.js). The game stays on a 2D plane, like MK9; only the fighters are 3D. ---------- */
 let SKIP_BODY=false;
-const R3=(()=>{
+function makeR3(){
  if(typeof THREE==='undefined')return null;
  let renderer;
  try{const cvs=document.createElement('canvas');renderer=new THREE.WebGLRenderer({canvas:cvs,alpha:true,antialias:true,preserveDrawingBuffer:true,powerPreference:'high-performance'});if(!renderer.getContext())return null;}catch(e){return null;}
@@ -2259,7 +2259,10 @@ const R3=(()=>{
    renderer.render(scene,cam);return renderer.domElement;
   }
  };
-})();
+}
+/* the 3D renderer is only created the first time 3D is switched on */
+const R3=typeof THREE==='undefined'?null:(()=>{let inst;const g=()=>inst===undefined?(inst=makeR3()):inst;
+ return{render:l=>{const i=g();return i?i.render(l):null;},portrait:(d,sh)=>{const i=g();if(!i)throw new Error('no webgl');return i.portrait(d,sh);},has:(d,sh)=>{const i=g();return i?i.has(d,sh):false;}};})();
 function drawFighter(c,f){
  if(f.hidden)return;
  const a=f.state==='attack'?f.atk:null,act=a&&f.at>a.st&&f.at<=a.st+a.ac;
@@ -2519,7 +2522,7 @@ function syncSettings(){
 function openSettings(){setFrom=document.activeElement;syncSettings();const m=document.getElementById('codeMsg');m.textContent='';m.className='codemsg';resetGodBtn();setEl.hidden=false;setTimeout(()=>document.getElementById(gp.active?'setDone':'codeIn').focus(),30);}
 function closeSettings(){setEl.hidden=true;resetGodBtn();refreshXP();if(setFrom&&setFrom.focus)setFrom.focus();}
 for(const [id,k] of [['setS3d','s3d'],['setMusic','music'],['setVoice','voice'],['setSfx','sfx']])document.querySelectorAll('#'+id+' button').forEach(b=>b.onclick=()=>{
- initAudio();SET[k]=b.dataset.v==='1';store.set(k,SET[k]?'1':'0');syncSettings();
+ initAudio();SET[k]=b.dataset.v==='1';if(k==='s3d')store.set('look',SET.s3d?'3d':'2d');else store.set(k,SET[k]?'1':'0');syncSettings();
  if(k==='music'){if(SET.music&&!['menu','results'].includes(G.phase))musicStart(STAGE().music);else musicStop();}
  if(k==='s3d'){document.querySelectorAll('.card .pt').forEach(im=>setPic(im,ROSTER[+im.dataset.n]));showInfo(ROSTER[G.sel]);}
  if(k==='voice'&&SET.voice)say('Announcer on');if(k==='sfx'&&SET.sfx)sfx('punch');
