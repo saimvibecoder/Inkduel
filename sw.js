@@ -1,5 +1,5 @@
 // Ink Duel offline cache. Bump VERSION when you deploy changes.
-const VERSION = 'ink-duel-v11';
+const VERSION = 'ink-duel-v12';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png', './favicon-32.png'];
 
 self.addEventListener('install', e => {

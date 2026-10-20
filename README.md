@@ -6,6 +6,9 @@ It is an installable web app (PWA): it gets its own icon, opens full screen and 
 
 ## Features
 - 3D fighters (three.js, bundled so it works offline). Switch back to the 2D look in Settings > Fighters.
+- Story mode: 6 acts, each with 3 bodyguards and a boss with its own trait (Iron Skin, Swift, Overcharge, Bloodthirst, Second Wind, Eclipse).
+- Coins and a gear shop: gloves, armor, boots and charms that work with every fighter; better pieces unlock as you clear acts.
+- Shadow Form: fill the meter, then hold Block and press Special for 6 seconds of extra damage, speed and toughness.
 - Arcade mode: pick a fighter and a difficulty, then beat 8 fights in a row (7 fighters, then your own Shadow as the final boss). The difficulty stays the same for the whole run. Runs are saved, lose and you can continue. Clearing earns a bonus and a badge per difficulty.
 - 20 painted fighters, each with its own special and finisher
 - 4 stages with their own music and hazards: Moon Dojo (breakable walls), Neon Rooftop (lightning, shock railings), Robot Factory (hydraulic press, conveyor floor), Desert Sunset (sandstorm gusts, breakable ruins)
