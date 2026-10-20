@@ -2066,6 +2066,8 @@ const R3=(()=>{
  const Y=new THREE.Vector3(0,1,0),NY=new THREE.Vector3(0,-1,0),SPH=new THREE.SphereGeometry(1,18,14),BOX=new THREE.BoxGeometry(1,1,1),ICO=new THREE.IcosahedronGeometry(1,0);
  const GEO={};
  function lathe(r0,r1,bul,rs){const k=[r0,r1,bul,rs].join();if(GEO[k])return GEO[k];const pts=[];for(let i=0;i<=12;i++){const t=i/12;const r=(r0+(r1-r0)*t)*(1+(bul-1)*Math.sin(Math.PI*Math.pow(t,.78)));pts.push(new THREE.Vector2(Math.max(.05,r),t-.5));}return GEO[k]=new THREE.LatheGeometry(pts,rs||14);}
+ function mlathe(r0,r1,pk,amt,rs){const k=['m',r0,r1,pk,amt,rs].join();if(GEO[k])return GEO[k];const pts=[];for(let i=0;i<=16;i++){const t=i/16;const r=(r0+(r1-r0)*t)*(1+amt*Math.exp(-Math.pow((t-pk)/.24,2)));pts.push(new THREE.Vector2(Math.max(.05,r),t));}return GEO[k]=new THREE.LatheGeometry(pts,rs||18);}
+ const CAPX=new THREE.CapsuleGeometry(1,1,4,10);
  function jag(geo,amp,cols){const p=geo.attributes.position;let n=0;for(let i=0;i<p.count;i++){if(p.getY(i)<-.99){p.setY(i,p.getY(i)+((n++%2)?amp:0));}}p.needsUpdate=true;geo.computeVertexNormals();return geo;}
  const models=new Map();
  function dispose(M){scene.remove(M.root);const keep=new Set([SPH,BOX,ICO,...Object.values(GEO)]);M.root.traverse(o=>{if(o.geometry&&!keep.has(o.geometry))o.geometry.dispose();});for(const o of M.mats)o.m.dispose();}
@@ -2085,23 +2087,33 @@ const R3=(()=>{
    pants:mat(rock?'rock':'pants'),boot:L.boot===L.armor?metal('boot'):mat(rock?'rockD':'boot',{r:.75})};
   const rs=rock?6:14;
   /* limbs */
+  const limbG=(r0,r1,pk,amt,m,mus)=>{const g=new THREE.Group();body.add(g);const lm=mesh(mlathe(r0,r1,pk,amt,rock?6:18),m,g);const ms=(mus||[]).map(([t,x,z,sx,sy,sz])=>{const e=mesh(SPH,m,g);e.scale.set(sx,sy,sz);return[e,t,x,z];});return{g,lm,ms};};
   for(const s of ['f','b']){
-   P[s+'ua']=mesh(lathe(6.8*b,4.8*b,1.14,rs),Ms.sleeve);P[s+'fa']=mesh(lathe(5.3*b,4*b,1.16,rs),Ms.sleeve);
-   P[s+'sh']=mesh(SPH,Ms.sleeve);P[s+'sh'].scale.setScalar(6.9*b);P[s+'el']=mesh(SPH,Ms.sleeve);P[s+'el'].scale.setScalar(4.8*b);
-   if(L.glove!==L.sleeve){P[s+'gl']=mesh(lathe(4.8*b,4.3*b,1.04,rs),Ms.glove);}
-   P[s+'fi']=mesh(SPH,Ms.glove);P[s+'fi'].scale.set(5.8*b,5.2*b,5.4*b);
-   P[s+'th']=mesh(lathe(8*b,5.8*b,1.12,rs),Ms.pants);P[s+'kn']=mesh(SPH,Ms.pants);P[s+'kn'].scale.setScalar(5.8*b);
-   P[s+'sn']=mesh(lathe(6*b,4.3*b,1.2,rs),Ms.pants);P[s+'bt']=mesh(lathe(5.7*b,4.8*b,1.03,rs),Ms.boot);
-   P[s+'ft']=mesh(SPH,Ms.boot);P[s+'ft'].scale.set(8.6*b,4.6*b,5.4*b);
-   if(L.pad){P[s+'pd']=mesh(SPH,L.armor?metal('armor'):Ms.boot);P[s+'pd'].scale.set(7*b,6.4*b,7*b);P[s+'sp']=mesh(SPH,L.armor?metal('armor'):Ms.sleeve);P[s+'sp'].scale.set(9.5*b,8*b,9.5*b);}
+   const ua=6.6*b,fa=5.4*b,th=8.6*b,sn=6.2*b;
+   P[s+'ua']=limbG(ua,4.6*b,.45,.1,Ms.sleeve,[[.5,ua*.42,0,ua*.62,6.2*b,ua*.66],[.38,-ua*.4,0,ua*.58,7*b,ua*.62]]);
+   P[s+'fa']=limbG(fa,3.5*b,.22,.16,Ms.sleeve,[[.24,fa*.3,0,fa*.66,6*b,fa*.7]]);
+   P[s+'sh']=mesh(SPH,Ms.sleeve);P[s+'sh'].scale.set(7*b,7.4*b,7.2*b);P[s+'el']=mesh(SPH,Ms.sleeve);P[s+'el'].scale.setScalar(4.7*b);
+   if(L.glove!==L.sleeve){P[s+'gl']=limbG(4.5*b,4*b,.5,.04,Ms.glove);}
+   const fi=P[s+'fi']=new THREE.Group();body.add(fi);
+   {const pm=mesh(SPH,Ms.glove,fi);pm.scale.set(4.4*b,4.6*b,4.9*b);pm.position.y=2*b;
+    for(const z of [-3.3,-1.1,1.1,3.3]){const k=mesh(CAPX,Ms.glove,fi);k.scale.set(1.35*b,1.6*b,1.35*b);k.rotation.z=Math.PI/2;k.position.set(.6*b,5.6*b,z*b);}
+    const th2=mesh(CAPX,Ms.glove,fi);th2.scale.set(1.3*b,1.8*b,1.3*b);th2.rotation.x=Math.PI/2;th2.position.set(2.6*b,3.6*b,0);fi.userData.th=th2;}
+   P[s+'th']=limbG(th,6*b,.35,.12,Ms.pants,[[.42,th*.42,0,th*.6,10*b,th*.7],[.45,-th*.38,0,th*.56,9*b,th*.62]]);
+   P[s+'kn']=mesh(SPH,Ms.pants);P[s+'kn'].scale.setScalar(6*b);
+   P[s+'sn']=limbG(sn,4*b,.28,.12,Ms.pants,[[.3,-sn*.45,0,sn*.62,8*b,sn*.7]]);
+   P[s+'bt']=limbG(5.9*b,4.9*b,.5,.03,Ms.boot);
+   const fo=P[s+'ft']=new THREE.Group();body.add(fo);
+   {const hl=mesh(SPH,Ms.boot,fo);hl.scale.set(4.6*b,4.4*b,4.6*b);const toe=mesh(SPH,Ms.boot,fo);toe.scale.set(6.4*b,3.5*b,4.8*b);toe.position.set(5.6*b,-1*b,0);fo.userData.toe=toe;}
+   if(L.pad){P[s+'pd']=mesh(SPH,L.armor?metal('armor'):Ms.boot);P[s+'pd'].scale.set(7*b,6.4*b,7*b);P[s+'sp']=mesh(SPH,L.armor?metal('armor'):Ms.sleeve);P[s+'sp'].scale.set(10*b,8.4*b,10*b);}
   }
-  P.neck=mesh(lathe(5*b,4.4*b,1,rs),L.head==='hood'||L.head==='raven'?mat('hood'):L.head==='hornhelm'?Ms.top:Ms.skin);
+  P.neck=mesh(lathe(6.2*b,5.2*b,1.02,rs),L.head==='hood'||L.head==='raven'?mat('hood'):L.head==='hornhelm'?Ms.top:Ms.skin);
   /* torso, in its own local frame: +x forward, +y up the spine, +z the near side */
   const T=P.torso=new THREE.Group();body.add(T);
-  const pts=[[.1,-2],[9.5,-1.5],[10.5,4],[10,13],[13,24],[14.6,31],[13,37],[8,40],[.1,41]].map(([r,y])=>new THREE.Vector2(r*(r>1?b:1),y*TL/40));
-  const ch=mesh(new THREE.LatheGeometry(pts,rock?7:20),Ms.top,T);ch.scale.set(.86,1,1.15);
+  const pts=[[.1,-2],[9.8,-1.5],[10.8,4],[10.2,12],[12.6,20],[15,29],[15.6,34],[13.4,38.5],[7.6,41],[.1,42]].map(([r,y])=>new THREE.Vector2(r*(r>1?b:1),y*TL/40));
+  const ch=mesh(new THREE.LatheGeometry(pts,rock?7:20),Ms.top,T);ch.scale.set(.8,1,1.3);
+  if(!rock){for(const z of [-1,1]){ell(Ms.top,T,9.6*b,TL*.75,z*5.6*b,4*b,4.6*b,6*b);ell(Ms.top,T,-1*b,TL*.98,z*8*b,5.6*b,4.2*b,7.4*b);}}
   const pel=ell(Ms.pants,T,0,1,0,8.4*b,7.2,12*b);
-  if(L.chest==='skin'){ell(Ms.skin,T,8.2*b,TL*.6,0,3.6,TL*.32,7.2*b);for(const z of [-1,1])ell(Ms.skin,T,8.3*b,TL*.76,z*4.6*b,4.4*b,4*b,4.8*b);}
+  if(L.chest==='skin'){ell(Ms.skin,T,8.4*b,TL*.6,0,3.6,TL*.33,7.4*b);for(const z of [-1,1]){ell(Ms.skin,T,10*b,TL*.75,z*5.2*b,4.3*b,4.5*b,5.4*b);for(const y of [.32,.44,.56])ell(Ms.skin,T,9.6*b,TL*y,z*2.3*b,2.2*b,2.5*b,2.2*b);}}
   if(L.armor){ell(metal('armor'),T,6.4*b,TL*.66,0,6.8*b,TL*.3,13.2*b);if(L.armorD)ell(metal('armorD'),T,6*b,TL*.4,0,6.2*b,TL*.14,11.6*b);}
   if(L.straps)for(const z of [-1,1]){const s=mesh(BOX,mat('straps'),T);s.position.set(9.6*b,TL*.56,0);s.scale.set(1.4,TL*.95,2.6);s.rotation.x=z*.62;}
   const belt=mesh(new THREE.TorusGeometry(1,.14,8,28),mat(L.sash?'sash':L.straps?'straps':'boot'),T);belt.position.y=TL*.1;belt.rotation.x=Math.PI/2;belt.scale.set(8.4*b,12.8*b,16);
@@ -2119,7 +2131,7 @@ const R3=(()=>{
   if(L.cape){const g=new THREE.PlaneGeometry(1,1,1,8);g.translate(0,-.5,0);if(L.torn){const p=g.attributes.position;for(let i=0;i<p.count;i++)if(p.getY(i)<-.99&&p.getX(i)>0)p.setY(i,-.86);p.needsUpdate=true;}
    P.cape=mesh(g,mat('cape',{ds:true,r:.85}));}
   /* head: local +x forward, +y up */
-  const Hd=P.head=new THREE.Group();body.add(Hd);const R=10.4*(b>1.3?1.12:1);
+  const Hd=P.head=new THREE.Group();body.add(Hd);const R=9.8*(b>1.3?1.1:1);
   const eyesAt=(x,y,zs,col,r)=>{const em=mat('#ffffff',{em:col||'acc',ei:2.6,fixed:'#ffffff'});for(const z of [-1,1]){const e=ell(em,Hd,x,y,z*zs,r||1.7);e.castShadow=false;}};
   const hd=L.head||'bare';
   if(rock){const h=mesh(new THREE.IcosahedronGeometry(R*1.25,0),Ms.top,Hd);h.scale.set(1.05,.9,1);eyesAt(R*1.08,R*.1,R*.38,null,2);}
@@ -2133,8 +2145,9 @@ const R3=(()=>{
   }
   if(!rock&&(hd==='bare'||hd==='wizard'||L.hoodOpen)){
    if(L.hoodOpen){const g=new THREE.SphereGeometry(R*1.3,18,14,-Math.PI/2,Math.PI);const sh=mesh(g,mat('hood',{ds:true,r:.85}),Hd);sh.position.set(-R*.12,R*.06,0);}
-   ell(Ms.skin,Hd,0,R*.05,0,R*.96,R*1.04,R*.9);ell(Ms.skin,Hd,R*.32,-R*.42,0,R*.66,R*.58,R*.66);
-   const ns=mesh(new THREE.ConeGeometry(R*.15,R*.42,8),Ms.skin,Hd);ns.position.set(R*1.02,-R*.06,0);ns.rotation.z=-Math.PI/2;
+   ell(Ms.skin,Hd,-R*.08,R*.12,0,R*.98,R*1.04,R*.86);ell(Ms.skin,Hd,R*.34,-R*.42,0,R*.64,R*.54,R*.64);ell(Ms.skin,Hd,R*.8,-R*.66,0,R*.26,R*.22,R*.32);
+   ell(Ms.skin,Hd,R*.84,R*.3,0,R*.2,R*.13,R*.66);for(const z of [-1,1]){ell(Ms.skin,Hd,-R*.12,R*.02,z*R*.84,R*.2,R*.3,R*.12);ell(Ms.skin,Hd,R*.62,-R*.12,z*R*.42,R*.3,R*.22,R*.26);}
+   const ns=mesh(new THREE.ConeGeometry(R*.17,R*.5,10),Ms.skin,Hd);ns.position.set(R*1.04,-R*.08,0);ns.rotation.z=-Math.PI/2-.2;
    const em=mat('#16110e',{fixed:'#16110e',r:.3});for(const z of [-1,1])ell(em,Hd,R*.82,R*.14,z*R*.34,R*.14,R*.17,R*.13);
    const hcol=L.hairC||L.beard||'#1b1719',brm=mat(L.hairC?'hairC':L.beard?'beard':'#1b1719',{fixed:L.hairC||L.beard?null:'#1b1719'});
    for(const z of [-1,1]){const br=mesh(BOX,brm,Hd);br.position.set(R*.84,R*.38,z*R*.34);br.scale.set(R*.18,R*.09,R*.36);br.rotation.x=z*.15;}
@@ -2174,12 +2187,15 @@ const R3=(()=>{
  const V=(p,z)=>new THREE.Vector3(p.x,-p.y,z);
  const qa=new THREE.Quaternion(),qb=new THREE.Quaternion(),Zax=new THREE.Vector3(0,0,1);
  function frame(up,yaw,out){qa.setFromAxisAngle(Zax,Math.atan2(-up.x,up.y));qb.setFromAxisAngle(Y,yaw);return out.copy(qa).multiply(qb);}
+ const _X=new THREE.Vector3(),_Yv=new THREE.Vector3(),_Z=new THREE.Vector3(),_M4=new THREE.Matrix4(),ZW=new THREE.Vector3(0,0,1);
+ function orient(g,a,b2){_Yv.copy(b2).sub(a);const l=_Yv.length()||.001;_Yv.multiplyScalar(1/l);_X.crossVectors(_Yv,ZW);if(_X.lengthSq()<1e-6)_X.set(1,0,0);_X.normalize();_Z.crossVectors(_X,_Yv);_M4.makeBasis(_X,_Yv,_Z);g.quaternion.setFromRotationMatrix(_M4);g.position.copy(a);return l;}
+ function setL(o,a,b2,fc){if(!o)return;const l=orient(o.g,a,b2);o.lm.scale.set(1,l,1);for(const [e,t,x,z] of o.ms)e.position.set(-fc*x,t*l,z);}
  function seg(m,a,b2){if(!m)return;const d=b2.clone().sub(a),l=d.length()||.001;m.position.copy(a).addScaledVector(d,.5);m.quaternion.setFromUnitVectors(Y,d.multiplyScalar(1/l));m.scale.set(1,l,1);}
  function at(m,p){if(m)m.position.copy(p);}
  function update(M,f,zb){
   const P=M.parts,L=M.L,b=M.b,J=f.joints,fc=f.vf||1,t=G.frame,sp=Math.min(16,Math.abs(f.vx||0)*3.5);
   M.root.visible=!f.hidden;if(f.hidden)return;
-  const cols=f.colsO||(f.state==='frozen'?ICE:f.shadowT>0?PAL_SHADOW:f.cols),k=(cols.v||'m')+cols[0]+cols[1];
+  const cols=f.colsO||(f.state==='frozen'?ICE:f.cols),k=(cols.v||'m')+cols[0]+cols[1];
   if(k!==M.key){M.key=k;for(const o of M.mats)if(!o.fixed)o.m.color.set(slotCol(L,o.slot,cols));}
   const a=f.state==='attack'?f.atk:null;let alpha=(a&&a.dash&&a.bodyHit&&f.inv>0)?.35:(f.inv>0&&f.state!=='attack'&&(G.frame>>2)%2?.5:1);
   const tf=f.tf,useTf=tf.sx!==1||tf.sy!==1||tf.rot||tf.alpha!==1||f.tfJit>.3;
@@ -2190,14 +2206,14 @@ const R3=(()=>{
   const Hp=V(J.hip,0),N=V(J.neck,0),up=N.clone().sub(Hp).normalize();
   const T=P.torso;T.position.copy(Hp);frame(up,yaw,T.quaternion);
   const loc=(x,y,z)=>new THREE.Vector3(x,y,z).applyQuaternion(T.quaternion).add(Hp);
-  const near=fc,shF=loc(0,TL*.86,near*12.5*b),shB=loc(0,TL*.86,-near*12.5*b),hpF=loc(1,0,near*6.5*b),hpB=loc(1,0,-near*6.5*b);
+  const near=fc,shF=loc(0,TL*.88,near*15*b),shB=loc(0,TL*.88,-near*15*b),hpF=loc(1,0,near*7.5*b),hpB=loc(1,0,-near*7.5*b);
   const limbs=[['f',shF,V(J.felb,9*b),V(J.fhand,7*b),hpF,V(J.fknee,7*b),V(J.ffoot,7*b)],['b',shB,V(J.belb,-9*b),V(J.bhand,-7*b),hpB,V(J.bknee,-7*b),V(J.bfoot,-7*b)]];
   for(const [s,sh,el,ha,hp,kn,ft] of limbs){
-   seg(P[s+'ua'],sh,el);seg(P[s+'fa'],el,ha);at(P[s+'sh'],sh);at(P[s+'el'],el);
-   if(P[s+'gl'])seg(P[s+'gl'],el.clone().lerp(ha,.55),ha);
-   const fd=ha.clone().sub(el).normalize();at(P[s+'fi'],ha.clone().addScaledVector(fd,2));P[s+'fi'].quaternion.setFromUnitVectors(Y,fd);
-   seg(P[s+'th'],hp,kn);seg(P[s+'sn'],kn,ft);at(P[s+'kn'],kn);seg(P[s+'bt'],kn.clone().lerp(ft,.5),ft);
-   P[s+'ft'].position.set(ft.x+fc*4*b,ft.y-1.5,ft.z);
+   setL(P[s+'ua'],sh,el,fc);setL(P[s+'fa'],el,ha,fc);at(P[s+'sh'],sh.clone().add(new THREE.Vector3(0,1.5*b,0)));at(P[s+'el'],el);
+   if(P[s+'gl'])setL(P[s+'gl'],el.clone().lerp(ha,.55),ha,fc);
+   {const fi=P[s+'fi'],fd=ha.clone().sub(el).normalize();orient(fi,ha.clone().addScaledVector(fd,-1.5*b),ha.clone().addScaledVector(fd,4));fi.userData.th.position.x=-fc*2.6*b;}
+   setL(P[s+'th'],hp,kn,fc);setL(P[s+'sn'],kn,ft,fc);at(P[s+'kn'],kn);setL(P[s+'bt'],kn.clone().lerp(ft,.5),ft,fc);
+   P[s+'ft'].position.set(ft.x+fc*.5*b,ft.y-1,ft.z);P[s+'ft'].userData.toe.position.x=fc*5.6*b;
    if(P[s+'pd']){at(P[s+'pd'],kn.clone().add(new THREE.Vector3(fc*2,0,0)));at(P[s+'sp'],sh.clone().add(new THREE.Vector3(0,2,0)));}
   }
   const Hh=V(J.head,0);seg(P.neck,N,N.clone().lerp(Hh,.55));
