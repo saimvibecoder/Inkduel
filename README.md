@@ -5,7 +5,7 @@ four CPU difficulties (Easy, Normal, Hard, Nightmare) and a practice mode.
 It is an installable web app (PWA): it gets its own icon, opens full screen and plays offline after the first visit.
 
 ## Features
-- Hand-drawn 2D fighters by default; an optional 3D look is in Settings > Fighters (three.js with the X Bot rigged human from the three.js examples, bundled so it works offline).
+- 3D fighters by default: six Mixamo characters (Kachujin, Ninja, Brute, Paladin, Heraklios, Dreyar) with motion-captured moves from mixamo.com, rendered with three.js and bundled so it works offline. The hand-drawn 2D look is in Settings > Fighters.
 - Story mode: 6 acts, each with 3 bodyguards and a boss with its own trait (Iron Skin, Swift, Overcharge, Bloodthirst, Second Wind, Eclipse).
 - Coins and a gear shop: gloves, armor, boots and charms that work with every fighter; better pieces unlock as you clear acts.
 - Shadow Form: fill the meter, then hold Block and press Special for 6 seconds of extra damage, speed and toughness.
